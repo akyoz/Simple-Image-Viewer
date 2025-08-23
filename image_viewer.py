@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, filedialog
+from tkinter import ttk, filedialog, messagebox
 from PIL import Image, ImageTk
 import os
 import sys # 追加
@@ -218,22 +218,30 @@ class ImageViewerApp:
         self.fullscreen_photo_ref = None
         self.hide_overlay_timer = None
 
-        img_label = tk.Label(top, bg='black')
+        # Use a style for the fullscreen components
+        style = ttk.Style()
+        style.configure("Fullscreen.TFrame", background="black")
+        style.configure("Fullscreen.TLabel", background="black", foreground="white", font=("Helvetica", 12))
+        style.configure("Fullscreen.TButton", background="#202020", foreground="white", font=("Helvetica", 16, 'bold'), relief='flat')
+        style.map("Fullscreen.TButton", background=[('active', '#404040')])
+
+
+        img_label = ttk.Label(top, style="Fullscreen.TLabel")
         img_label.pack(expand=True)
 
-        top_overlay = tk.Frame(top, bg='#000000', bd=0)
-        bottom_overlay = tk.Frame(top, bg='#000000', bd=0)
+        top_overlay = ttk.Frame(top, style="Fullscreen.TFrame")
+        bottom_overlay = ttk.Frame(top, style="Fullscreen.TFrame")
 
-        filename_label = tk.Label(top_overlay, text="", bg="#000000", fg="white", font=("Segoe UI", 12))
+        filename_label = ttk.Label(top_overlay, text="", style="Fullscreen.TLabel")
         filename_label.pack(side=tk.LEFT, padx=10, pady=5)
-        count_label = tk.Label(top_overlay, text="", bg="#000000", fg="white", font=("Segoe UI", 12))
+        count_label = ttk.Label(top_overlay, text="", style="Fullscreen.TLabel")
         count_label.pack(side=tk.RIGHT, padx=10, pady=5)
 
         sequence_scale = ttk.Scale(bottom_overlay, from_=0, to=len(self.image_info)-1, orient='horizontal')
         sequence_scale.pack(fill=tk.X, expand=True, padx=10, pady=5)
 
-        prev_button = tk.Button(top, text="<", bg="#202020", fg="white", font=("Segoe UI", 16, 'bold'), bd=0, relief='flat', activebackground='#404040')
-        next_button = tk.Button(top, text=">", bg="#202020", fg="white", font=("Segoe UI", 16, 'bold'), bd=0, relief='flat', activebackground='#404040')
+        prev_button = ttk.Button(top, text="<", style="Fullscreen.TButton")
+        next_button = ttk.Button(top, text=">", style="Fullscreen.TButton")
 
         def update_fullscreen_image(update_scale=True):
             image_path = self.image_info[self.current_fullscreen_index]['path']
@@ -257,7 +265,6 @@ class ImageViewerApp:
 
             except Exception as e:
                 top.destroy()
-                from tkinter import messagebox
                 messagebox.showerror("画像エラー", f"画像の読み込み中にエラーが発生しました:\n{e}")
 
         def next_image(e=None):
@@ -298,8 +305,11 @@ class ImageViewerApp:
             next_button.place_forget()
 
         def on_mouse_wheel(event):
-            if event.num == 5 or event.delta < 0: next_image()
-            elif event.num == 4 or event.delta > 0: prev_image()
+            # Cross-platform mouse wheel handling
+            if event.delta > 0 or event.num == 4:
+                prev_image()
+            elif event.delta < 0 or event.num == 5:
+                next_image()
 
         sequence_scale.config(command=seek_image)
         prev_button.config(command=prev_image)
@@ -316,9 +326,10 @@ class ImageViewerApp:
         top.bind('<Left>', prev_image)
         top.bind('<Up>', prev_image)
         
-        top.bind('<MouseWheel>', on_mouse_wheel)
-        top.bind('<Button-4>', on_mouse_wheel)
-        top.bind('<Button-5>', on_mouse_wheel)
+        # Bind mouse wheel events for different platforms
+        top.bind('<MouseWheel>', on_mouse_wheel) # Windows
+        top.bind('<Button-4>', on_mouse_wheel)   # Linux scroll up
+        top.bind('<Button-5>', on_mouse_wheel)   # Linux scroll down
 
         update_fullscreen_image()
         show_overlay()
