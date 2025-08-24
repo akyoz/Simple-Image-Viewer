@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk # pyright: ignore[reportMissingImports]
 import os
 import sys # 追加
 import threading
@@ -198,9 +198,9 @@ class ImageViewerApp:
             photo_image = ImageTk.PhotoImage(resized_image)
             
             self.preview_label.config(image=photo_image, text="")
-            self.preview_label.image = photo_image
+            self.preview_label.image = photo_image # pyright: ignore[reportAttributeAccessIssue]
         except Exception as e:
-            self.preview_label.config(image=None, text=f"プレビューの読み込みエラー:\n{e}")
+            self.preview_label.config(image=None, text=f"プレビューの読み込みエラー:\n{e}") # pyright: ignore[reportArgumentType]
 
     def show_full_size_image(self, event=None):
         selection = self.tree.selection()
@@ -334,7 +334,7 @@ class ImageViewerApp:
         update_fullscreen_image()
         show_overlay()
 
-if __name__ == "__main__":
+def main():
     root = tk.Tk()
     app = ImageViewerApp(root)
 
@@ -343,6 +343,9 @@ if __name__ == "__main__":
         if os.path.isdir(folder_path):
             root.after(100, lambda: app.load_folder(folder_path))
         else:
-            print(f"エラー: 指定されたパスは有効なディレクトリではありません: {folder_path}")
+            messagebox.showerror("エラー", f"指定されたパスは有効なディレクトリではありません: {folder_path}")
 
     root.mainloop()
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,4 @@
+simple_image_viewer.egg-info/
+build/
+.venv/
+.venv
